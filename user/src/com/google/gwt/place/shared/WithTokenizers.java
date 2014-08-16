@@ -28,5 +28,8 @@ import java.lang.annotation.Target;
 @Target({ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface WithTokenizers {
+
+  String separator()  default ":";
+
   Class<? extends PlaceTokenizer<?>>[] value();
 }

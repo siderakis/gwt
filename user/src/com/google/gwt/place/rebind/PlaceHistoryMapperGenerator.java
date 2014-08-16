@@ -15,6 +15,7 @@
  */
 package com.google.gwt.place.rebind;
 
+import com.google.gwt.codegen.server.CodeGenUtils;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.core.ext.Generator;
 import com.google.gwt.core.ext.GeneratorContext;
@@ -90,6 +91,9 @@ public class PlaceHistoryMapperGenerator extends Generator {
     SourceWriter sw = f.createSourceWriter(generatorContext, out);
     sw.println();
 
+    writeGetSeparator(context, sw);
+    sw.println();
+
     writeGetPrefixAndToken(context, sw);
     sw.println();
 
@@ -99,6 +103,15 @@ public class PlaceHistoryMapperGenerator extends Generator {
     sw.outdent();
     sw.println("}");
     generatorContext.commit(logger, out);
+  }
+
+  private void writeGetSeparator(PlaceHistoryGeneratorContext context,
+      SourceWriter sw) throws UnableToCompleteException {
+    sw.println("protected String getSeparator() {");
+    sw.indent();
+    sw.println("return " + CodeGenUtils.asStringLiteral(context.getSeparator()) + ";");
+    sw.outdent();
+    sw.println("}");
   }
 
   private void writeGetPrefixAndToken(PlaceHistoryGeneratorContext context,

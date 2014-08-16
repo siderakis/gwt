@@ -72,7 +72,7 @@ class PlaceHistoryGeneratorContext {
         interfaceType);
 
     String implName = interfaceType.getName().replace(".", "_") + "Impl";
-
+    
     return new PlaceHistoryGeneratorContext(logger, typeOracle, interfaceType,
         factoryType, stringType, placeTokenizerType,
         interfaceType.getPackage().getName(), implName);
@@ -115,6 +115,8 @@ class PlaceHistoryGeneratorContext {
 
   final String packageName;
 
+  String separator = ":";
+
   /**
    * All tokenizers, either as a {@link JMethod} for factory getters or as a
    * {@link JClassType} for types that must be GWT.create()d, by prefix.
@@ -140,6 +142,7 @@ class PlaceHistoryGeneratorContext {
     this.placeTokenizerType = placeTokenizerType;
     this.packageName = packageName;
     this.implName = implName;
+    
   }
 
   public Set<JClassType> getPlaceTypes() throws UnableToCompleteException {
@@ -156,6 +159,11 @@ class PlaceHistoryGeneratorContext {
   public Set<String> getPrefixes() throws UnableToCompleteException {
     ensureInitialized();
     return tokenizers.keySet();
+  }
+
+  public String getSeparator() throws UnableToCompleteException {
+		ensureInitialized();
+    return separator;
   }
 
   public JMethod getTokenizerGetter(String prefix)
@@ -182,17 +190,19 @@ class PlaceHistoryGeneratorContext {
     if (tokenizers == null) {
       assert placeTypes.isEmpty();
       tokenizers = new HashMap<String, Object>();
+      initSeparator();
       initTokenizerGetters();
       initTokenizersWithoutGetters();
     }
+
   }
 
   private void addPlaceTokenizer(Object tokenizerClassOrGetter, String prefix,
       JClassType tokenizerType) throws UnableToCompleteException {
-    if (prefix.contains(":")) {
+    if (prefix.contains(getSeparator())) {
       logger.log(TreeLogger.ERROR, String.format(
-          "Found place prefix \"%s\" containing separator char \":\", on %s",
-          prefix, getLogMessage(tokenizerClassOrGetter)));
+          "Found place prefix \"%s\" containing separator char \"%s\", on %s",
+          prefix, getLogMessage(tokenizerClassOrGetter), getSeparator()));
       throw new UnableToCompleteException();
     }
     if (tokenizers.containsKey(prefix)) {
@@ -282,6 +292,19 @@ class PlaceHistoryGeneratorContext {
     return rtn;
   }
 
+  private void initSeparator() throws UnableToCompleteException{
+    WithTokenizers annotation = interfaceType.getAnnotation(WithTokenizers.class);
+    if (annotation != null && annotation.separator() != null) {
+      if(annotation.separator().isEmpty()){
+        logger.log(TreeLogger.ERROR, String.format(
+            "Error processing @%s, separator cannot be empty",
+            WithTokenizers.class.getSimpleName()));
+        throw new UnableToCompleteException();
+      }
+      separator = annotation.separator();
+    }
+  }
+
   private void initTokenizerGetters() throws UnableToCompleteException {
     if (factoryType != null) {
 
@@ -330,4 +353,5 @@ class PlaceHistoryGeneratorContext {
     }
     return rtn;
   }
+
 }

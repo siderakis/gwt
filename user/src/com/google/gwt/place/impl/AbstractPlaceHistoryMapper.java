@@ -31,31 +31,31 @@ public abstract class AbstractPlaceHistoryMapper<F> implements
    * Return value for
    * {@link AbstractPlaceHistoryMapper#getPrefixAndToken(Place)}.
    */
-  public static class PrefixAndToken {
+  public class PrefixAndToken {
     public final String prefix;
     public final String token;
 
     public PrefixAndToken(String prefix, String token) {
-      assert prefix != null && !prefix.contains(":");
+      assert prefix != null && !prefix.contains(getSeparator());
       this.prefix = prefix;
       this.token = token;
     }
 
     @Override
     public String toString() {
-      return (prefix.length() == 0) ? token : prefix + ":" + token;
+      return (prefix.length() == 0) ? token : prefix + getSeparator() + token;
     }
   }
 
   protected F factory;
   
   public Place getPlace(String token) {
-    int colonAt = token.indexOf(':');
+    int colonAt = token.indexOf(getSeparator());
     String initial;
     String rest;
     if (colonAt >= 0) {
       initial = token.substring(0, colonAt);
-      rest = token.substring(colonAt + 1);
+      rest = token.substring(colonAt + getSeparator().length());
     } else {
       initial = "";
       rest = token;
@@ -78,6 +78,8 @@ public abstract class AbstractPlaceHistoryMapper<F> implements
   public void setFactory(F factory) {
     this.factory = factory;
   }
+
+  protected abstract String getSeparator();
 
   /**
    * @param newPlace what needs tokenizing
