@@ -18,8 +18,13 @@ package com.google.gwt.dev.codeserver;
 
 import com.google.gwt.core.ext.TreeLogger;
 import com.google.gwt.dev.ArgProcessorBase;
+import com.google.gwt.dev.json.JsonArray;
+import com.google.gwt.dev.json.JsonObject;
+import com.google.gwt.dev.util.arg.ArgHandlerJsInteropMode;
 import com.google.gwt.dev.util.arg.ArgHandlerLogLevel;
 import com.google.gwt.dev.util.arg.ArgHandlerSourceLevel;
+import com.google.gwt.dev.util.arg.JsInteropMode;
+import com.google.gwt.dev.util.arg.OptionJsInteropMode;
 import com.google.gwt.dev.util.arg.OptionLogLevel;
 import com.google.gwt.dev.util.arg.OptionSourceLevel;
 import com.google.gwt.dev.util.arg.SourceLevel;
@@ -47,7 +52,7 @@ public class Options {
   private boolean noPrecompile = false;
   private boolean isCompileTest = false;
   private File workDir;
-  private List<String> moduleNames = new ArrayList<String>();
+  private final List<String> moduleNames = new ArrayList<String>();
   private boolean allowMissingSourceDir = false;
   private final List<File> sourcePath = new ArrayList<File>();
   private String bindAddress = "127.0.0.1";
@@ -60,6 +65,7 @@ public class Options {
   private boolean failOnError = false;
   private boolean strictResources = false;
   private int compileTestRecompiles = 0;
+  private JsInteropMode jsInteropMode = JsInteropMode.NONE;
 
   /**
    * Sets each option to the appropriate value, based on command-line arguments.
@@ -210,6 +216,18 @@ public class Options {
     return failOnError;
   }
 
+  JsInteropMode getJsInteropMode() {
+    return jsInteropMode;
+  }
+
+  JsonArray getWarningsAsJson() {
+    JsonArray warnings = new JsonArray();
+    if (compilePerFile) {
+      warnings.add("-XcompilePerFile is not done yet. Generators might not be run when needed.");
+    }
+    return warnings;
+  }
+
   private class ArgProcessor extends ArgProcessorBase {
 
     public ArgProcessor() {
@@ -248,6 +266,16 @@ public class Options {
           Options.this.logLevel = logLevel;
         }
       }));
+      registerHandler(new ArgHandlerJsInteropMode(new OptionJsInteropMode() {
+        @Override
+        public JsInteropMode getJsInteropMode() {
+          return Options.this.jsInteropMode;
+        }
+
+        @Override
+        public void setJsInteropMode(JsInteropMode mode) {
+          Options.this.jsInteropMode = mode;
+        }}));
     }
 
     @Override

@@ -218,6 +218,41 @@ public class CompilerMiscRegressionTest extends GWTTestCase {
         SomeParentParentParent.callSomeParentParentParentM(new SomeSubSubClassInAnotherPackage()));
   }
 
+  enum MyEnum {
+    A,
+    B,
+    C;
+
+    public final static MyEnum[] VALUES = values();
+
+    public int getPriority() {
+      return VALUES.length - ordinal();
+    }
+  }
+
+  /**
+   * Tests that enum ordinalizer does not incorrectly optimize {@code MyEnum}.
+   * <p>
+   * Test for issue 8846:.
+   */
+  public void testMyEnum() {
+    assertEquals(2, MyEnum.B.getPriority());
+  }
+
+  /**
+   * Tests that regexes are not incorrectly internalized.
+   *
+   * Test for issue 8865.
+   */
+  public native void testJavaScriptRegExps() /*-{
+    // Make regexes large enough so that the will be interned (if regex interning was enabled).
+    var regExp1 = /this is a string where the search/g;
+    var regExp2 = /this is a string where the search/g;
+    var str = "this is a string where the search occurs";
+    @junit.framework.Assert::assertEquals(ZZ)(
+       regExp1.test(str), regExp2.test(str));
+  }-*/;
+
   private static void assertEqualContents(float[] expected, float[] actual) {
 
     assertEquals("Array length mismatch", expected.length, actual.length);

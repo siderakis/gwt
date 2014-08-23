@@ -60,7 +60,7 @@ class Recompiler {
   private final TreeLogger logger;
   private String serverPrefix;
   private int compilesDone = 0;
-  private MinimalRebuildCache minimalRebuildCache;
+  private MinimalRebuildCache minimalRebuildCache = new MinimalRebuildCache();
 
   // after renaming
   private AtomicReference<String> moduleName = new AtomicReference<String>(null);
@@ -440,7 +440,7 @@ class Recompiler {
       logger.log(TreeLogger.Type.INFO, "recovered with " + propName + "=" + newValue);
     }
 
-    binding.setAllowedValues(binding.getRootCondition(), newValue);
+    binding.setRootGeneratedValues(newValue);
     return newValue;
   }
 
@@ -450,7 +450,7 @@ class Recompiler {
         return candidate;
       }
     }
-    return property.getFirstLegalValue();
+    return property.getFirstAllowedValue();
   }
 
   /**
@@ -459,7 +459,11 @@ class Recompiler {
   private static void overrideBinding(ModuleDef module, String propName, String newValue) {
     BindingProperty binding = module.getProperties().findBindingProp(propName);
     if (binding != null) {
-      binding.setAllowedValues(binding.getRootCondition(), newValue);
+      // This sets both allowed and generated values, which is needed since the module
+      // might have explicitly disallowed the value.
+      // It persists over multiple compiles but that's okay since we set it the same way
+      // every time.
+      binding.setValues(binding.getRootCondition(), newValue);
     }
   }
 
